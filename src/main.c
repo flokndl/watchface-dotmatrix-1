@@ -1,6 +1,5 @@
 #include <pebble.h>
 #include <stdlib.h>
-#include <string.h>
 
 static Window *s_main_window;
 
@@ -14,9 +13,7 @@ static Animation *s_animations[4];        // Animation for each digit transition
 static PropertyAnimation *s_prop_animations[4];  // Property animations (need to be destroyed)
 static AppTimer *s_delay_timers[4];       // Delay timers for image_0 and image_2
 
-static GRect s_image_0_original_bounds;
 static bool s_image_0_is_shifted = false;
-static GRect s_image_2_original_bounds;
 static bool s_image_2_is_shifted = false;
 
 // Debug settings
@@ -28,6 +25,10 @@ static char debug_time[] = "01:24";
 #define IMAGE_HEIGHT 72
 #define TRANSITION_DURATION_MS 500  // Animation duration in milliseconds
 #define DELAY_MS 200  // Delay for image_0 and image_2 transitions
+
+// Position constants
+#define PADDING_TOP 12
+#define PADDING_LEFT 16
 
 // Helper function to get resource ID for a digit (0-9)
 static uint32_t get_num_resource_id(int digit) {
@@ -261,12 +262,10 @@ static void update_time() {
   int minute_ones = minutes % 10;
   
   // Calculate positions
-  int padding_top = 12;
-  int padding_left = 16;
-  int x_positions[4] = {padding_left, padding_left + IMAGE_WIDTH, 
-                        padding_left, padding_left + IMAGE_WIDTH};
-  int y_positions[4] = {padding_top, padding_top,
-                        padding_top + IMAGE_HEIGHT, padding_top + IMAGE_HEIGHT};
+  int x_positions[4] = {PADDING_LEFT, PADDING_LEFT + IMAGE_WIDTH, 
+                        PADDING_LEFT, PADDING_LEFT + IMAGE_WIDTH};
+  int y_positions[4] = {PADDING_TOP, PADDING_TOP,
+                        PADDING_TOP + IMAGE_HEIGHT, PADDING_TOP + IMAGE_HEIGHT};
   
   // Update each digit with transition
   update_digit_with_transition(0, hour_tens, GRect(x_positions[0], y_positions[0], IMAGE_WIDTH, IMAGE_HEIGHT));
@@ -279,42 +278,22 @@ static void update_time() {
     layer_set_hidden(s_mask_layers[0], hour_tens == 0);
   }
   
-  // Handle letter spacing adjustments for image_0 and image_2
+  // Track shift state for hour tens and minute tens (for transition fix)
+  // Currently no actual shifting occurs (SHIFT_AMOUNT would be 0), but flags are kept
+  // for the transition bug fix when transitioning away from "1"
   if (s_mask_layers[0]) {
-    Layer *layer = s_mask_layers[0];
-    const int ORIGINAL_X = 8;
-    const int ORIGINAL_Y = 0;
-    const int SHIFT_AMOUNT = 0;
-    
     if (hour_tens == 1) {
-      if (!s_image_0_is_shifted) {
-        layer_set_bounds(layer, GRect(ORIGINAL_X + SHIFT_AMOUNT, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
-        s_image_0_is_shifted = true;
-      }
+      s_image_0_is_shifted = true;
     } else {
-      if (s_image_0_is_shifted) {
-        layer_set_bounds(layer, GRect(ORIGINAL_X, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
-        s_image_0_is_shifted = false;
-      }
+      s_image_0_is_shifted = false;
     }
   }
   
   if (s_mask_layers[2]) {
-    Layer *layer = s_mask_layers[2];
-    const int ORIGINAL_X = 8;
-    const int ORIGINAL_Y = 0;
-    const int SHIFT_AMOUNT = 0;
-    
     if (minute_tens == 1) {
-      if (!s_image_2_is_shifted) {
-        layer_set_bounds(layer, GRect(ORIGINAL_X + SHIFT_AMOUNT, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
-        s_image_2_is_shifted = true;
-      }
+      s_image_2_is_shifted = true;
     } else {
-      if (s_image_2_is_shifted) {
-        layer_set_bounds(layer, GRect(ORIGINAL_X, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
-        s_image_2_is_shifted = false;
-      }
+      s_image_2_is_shifted = false;
     }
   }
 }
@@ -328,12 +307,10 @@ static void main_window_load(Window *window) {
   
   window_set_background_color(window, GColorBlack);
   
-  int padding_top = 12;
-  int padding_left = 16;
-  int x_positions[4] = {padding_left, padding_left + IMAGE_WIDTH, 
-                        padding_left, padding_left + IMAGE_WIDTH};
-  int y_positions[4] = {padding_top, padding_top,
-                        padding_top + IMAGE_HEIGHT, padding_top + IMAGE_HEIGHT};
+  int x_positions[4] = {PADDING_LEFT, PADDING_LEFT + IMAGE_WIDTH, 
+                        PADDING_LEFT, PADDING_LEFT + IMAGE_WIDTH};
+  int y_positions[4] = {PADDING_TOP, PADDING_TOP,
+                        PADDING_TOP + IMAGE_HEIGHT, PADDING_TOP + IMAGE_HEIGHT};
   
   // Initialize current digits
   for (int i = 0; i < 4; i++) {
@@ -361,12 +338,10 @@ static void main_window_load(Window *window) {
     layer_add_child(s_mask_layers[i], s_wrapper_layers[i]);
     layer_add_child(window_layer, s_mask_layers[i]);
     
-    // Store original bounds for spacing adjustments
+    // Initialize shift flags
     if (i == 0) {
-      s_image_0_original_bounds = GRect(x_positions[i], y_positions[i], IMAGE_WIDTH, IMAGE_HEIGHT);
       s_image_0_is_shifted = false;
     } else if (i == 2) {
-      s_image_2_original_bounds = GRect(x_positions[i], y_positions[i], IMAGE_WIDTH, IMAGE_HEIGHT);
       s_image_2_is_shifted = false;
     }
   }
