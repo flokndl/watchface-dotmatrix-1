@@ -1,0 +1,24 @@
+# Build artifacts
+build/
+*.pbw
+*.elf
+*.o
+*.d
+
+# SDK
+PebbleSDK-*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+

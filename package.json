@@ -1,0 +1,100 @@
+{
+  "name": "pebble-watchface-duo",
+  "version": "1.0.0",
+  "description": "A Pebble 2 Duo watchface",
+  "main": "src/main.c",
+  "author": "",
+  "license": "MIT",
+  "pebble": {
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite"
+    ],
+    "capabilities": [
+      "configurable"
+    ],
+    "uuid": "c8cae21d-2061-46e7-ae85-f297453c6600",
+    "displayName": "Duo Watchface",
+    "watchapp": {
+      "watchface": true
+    },
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "IMAGE_0",
+          "file": "images/image_0.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_1",
+          "file": "images/image_1.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_2",
+          "file": "images/image_2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_3",
+          "file": "images/image_3.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_0",
+          "file": "images/num/0.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_1",
+          "file": "images/num/1.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_2",
+          "file": "images/num/2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_3",
+          "file": "images/num/3.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_4",
+          "file": "images/num/4.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_5",
+          "file": "images/num/5.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_6",
+          "file": "images/num/6.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_7",
+          "file": "images/num/7.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_8",
+          "file": "images/num/8.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_9",
+          "file": "images/num/9.png"
+        }
+      ]
+    }
+  }
+}
+
