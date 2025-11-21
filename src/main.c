@@ -20,8 +20,8 @@ static GRect s_image_2_original_bounds;
 static bool s_image_2_is_shifted = false;
 
 // Debug settings
-static bool show_debug_time = true;
-static char debug_time[] = "11:24";
+static bool show_debug_time = false;
+static char debug_time[] = "01:24";
 
 // Image dimensions
 #define IMAGE_WIDTH 56
@@ -273,6 +273,11 @@ static void update_time() {
   update_digit_with_transition(1, hour_ones, GRect(x_positions[1], y_positions[1], IMAGE_WIDTH, IMAGE_HEIGHT));
   update_digit_with_transition(2, minute_tens, GRect(x_positions[2], y_positions[2], IMAGE_WIDTH, IMAGE_HEIGHT));
   update_digit_with_transition(3, minute_ones, GRect(x_positions[3], y_positions[3], IMAGE_WIDTH, IMAGE_HEIGHT));
+  
+  // Hide image_0 (hour tens) when value is 0 (single digit hour)
+  if (s_mask_layers[0]) {
+    layer_set_hidden(s_mask_layers[0], hour_tens == 0);
+  }
   
   // Handle letter spacing adjustments for image_0 and image_2
   if (s_mask_layers[0]) {
