@@ -20,8 +20,8 @@ static GRect s_image_2_original_bounds;
 static bool s_image_2_is_shifted = false;
 
 // Debug settings
-static bool show_debug_time = false;
-static char debug_time[] = "11:14";
+static bool show_debug_time = true;
+static char debug_time[] = "11:24";
 
 // Image dimensions
 #define IMAGE_WIDTH 56
@@ -169,8 +169,30 @@ static void update_digit_with_transition(int digit_index, int new_digit, GRect p
   }
   
   // Check if digit actually changed
-  if (s_current_digits[digit_index] == new_digit) {
+  int old_digit = s_current_digits[digit_index];
+  if (old_digit == new_digit) {
     return;  // No change, no transition needed
+  }
+  
+  // Reset mask layer bounds BEFORE animation if transitioning away from "1"
+  // This fixes the bug where "2" appears shifted after transitioning from "1"
+  if (digit_index == 0 && old_digit == 1 && new_digit != 1) {
+    // Reset hour tens position when transitioning away from "1"
+    if (s_mask_layers[0] && s_image_0_is_shifted) {
+      const int ORIGINAL_X = 8;
+      const int ORIGINAL_Y = 0;
+      layer_set_bounds(s_mask_layers[0], GRect(ORIGINAL_X, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
+      s_image_0_is_shifted = false;
+    }
+  }
+  if (digit_index == 2 && old_digit == 1 && new_digit != 1) {
+    // Reset minute tens position when transitioning away from "1"
+    if (s_mask_layers[2] && s_image_2_is_shifted) {
+      const int ORIGINAL_X = 8;
+      const int ORIGINAL_Y = 0;
+      layer_set_bounds(s_mask_layers[2], GRect(ORIGINAL_X, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
+      s_image_2_is_shifted = false;
+    }
   }
   
   // Load new bitmap
