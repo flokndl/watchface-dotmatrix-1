@@ -1,5 +1,5 @@
 {
-  "name": "pebble-watchface-duo",
+  "name": "pebble-watchface-dotmatrix-1",
   "version": "1.0.0",
   "description": "A Pebble 2 Duo watchface",
   "main": "src/main.c",
@@ -17,7 +17,7 @@
       "configurable"
     ],
     "uuid": "c8cae21d-2061-46e7-ae85-f297453c6600",
-    "displayName": "Duo Watchface",
+    "displayName": "Dotmatrix Watchface",
     "watchapp": {
       "watchface": true
     },
