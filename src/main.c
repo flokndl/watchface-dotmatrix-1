@@ -13,9 +13,6 @@ static Animation *s_animations[4];        // Animation for each digit transition
 static PropertyAnimation *s_prop_animations[4];  // Property animations (need to be destroyed)
 static AppTimer *s_delay_timers[4];       // Delay timers for image_0 and image_2
 
-static bool s_image_0_is_shifted = false;
-static bool s_image_2_is_shifted = false;
-
 // Debug settings
 static bool show_debug_time = false;
 static char debug_time[] = "01:24";
@@ -175,27 +172,6 @@ static void update_digit_with_transition(int digit_index, int new_digit, GRect p
     return;  // No change, no transition needed
   }
   
-  // Reset mask layer bounds BEFORE animation if transitioning away from "1"
-  // This fixes the bug where "2" appears shifted after transitioning from "1"
-  if (digit_index == 0 && old_digit == 1 && new_digit != 1) {
-    // Reset hour tens position when transitioning away from "1"
-    if (s_mask_layers[0] && s_image_0_is_shifted) {
-      const int ORIGINAL_X = 8;
-      const int ORIGINAL_Y = 0;
-      layer_set_bounds(s_mask_layers[0], GRect(ORIGINAL_X, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
-      s_image_0_is_shifted = false;
-    }
-  }
-  if (digit_index == 2 && old_digit == 1 && new_digit != 1) {
-    // Reset minute tens position when transitioning away from "1"
-    if (s_mask_layers[2] && s_image_2_is_shifted) {
-      const int ORIGINAL_X = 8;
-      const int ORIGINAL_Y = 0;
-      layer_set_bounds(s_mask_layers[2], GRect(ORIGINAL_X, ORIGINAL_Y, IMAGE_WIDTH, IMAGE_HEIGHT));
-      s_image_2_is_shifted = false;
-    }
-  }
-  
   // Load new bitmap
   GBitmap *new_bitmap = gbitmap_create_with_resource(get_num_resource_id(new_digit));
   if (!new_bitmap) {
@@ -277,25 +253,6 @@ static void update_time() {
   if (s_mask_layers[0]) {
     layer_set_hidden(s_mask_layers[0], hour_tens == 0);
   }
-  
-  // Track shift state for hour tens and minute tens (for transition fix)
-  // Currently no actual shifting occurs (SHIFT_AMOUNT would be 0), but flags are kept
-  // for the transition bug fix when transitioning away from "1"
-  if (s_mask_layers[0]) {
-    if (hour_tens == 1) {
-      s_image_0_is_shifted = true;
-    } else {
-      s_image_0_is_shifted = false;
-    }
-  }
-  
-  if (s_mask_layers[2]) {
-    if (minute_tens == 1) {
-      s_image_2_is_shifted = true;
-    } else {
-      s_image_2_is_shifted = false;
-    }
-  }
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -337,13 +294,6 @@ static void main_window_load(Window *window) {
     // Add wrapper to mask, mask to window
     layer_add_child(s_mask_layers[i], s_wrapper_layers[i]);
     layer_add_child(window_layer, s_mask_layers[i]);
-    
-    // Initialize shift flags
-    if (i == 0) {
-      s_image_0_is_shifted = false;
-    } else if (i == 2) {
-      s_image_2_is_shifted = false;
-    }
   }
   
   // Load initial time
