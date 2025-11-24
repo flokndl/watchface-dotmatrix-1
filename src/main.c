@@ -46,12 +46,25 @@ static void outbox_sent_handler(DictionaryIterator *iter, void *context);
 static void update_time(void);
 
 // Helper function to get resource ID for a digit (0-9)
+// Resource IDs are: NUM_0=1, NUM_1=2, NUM_1_ALT=3, NUM_2=4, NUM_3=5, etc.
+// So digits 2-9 need to account for NUM_1_ALT being inserted
 static uint32_t get_num_resource_id(int digit) {
   // Use alternate image for "1" if tabular style is disabled
   if (digit == 1 && !s_settings.use_tabular_style_1) {
     return RESOURCE_ID_NUM_1_ALT;
   }
-  return RESOURCE_ID_NUM_0 + digit;
+  
+  // Map digits to resource IDs correctly
+  // 0 → NUM_0, 1 → NUM_1, 2 → NUM_2, 3 → NUM_3, etc.
+  // Since NUM_1_ALT (ID 3) is between NUM_1 and NUM_2, digits 2-9 need +1 offset
+  if (digit == 0) {
+    return RESOURCE_ID_NUM_0;
+  } else if (digit == 1) {
+    return RESOURCE_ID_NUM_1;
+  } else {
+    // For digits 2-9, add 1 to account for NUM_1_ALT
+    return RESOURCE_ID_NUM_0 + digit + 1;
+  }
 }
 
 // Animation stopped callback - clean up old bitmap and swap

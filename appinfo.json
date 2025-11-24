@@ -2,9 +2,9 @@
   "uuid": "c712ec82-d2a4-4b78-95a7-6b3fd9041055",
   "shortName": "Dotmatrix 1",
   "longName": "Dotmatrix Watchface",
-  "companyName": "Your Company",
+  "companyName": "Florian Knoedl",
   "versionCode": 2,
-  "versionLabel": "1.1.0",
+  "versionLabel": "1.2.0",
   "watchapp": {
     "watchface": true
   },
