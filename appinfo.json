@@ -3,8 +3,8 @@
   "shortName": "Dotmatrix 1",
   "longName": "Dotmatrix Watchface",
   "companyName": "Your Company",
-  "versionCode": 1,
-  "versionLabel": "1.0.0",
+  "versionCode": 2,
+  "versionLabel": "1.1.0",
   "watchapp": {
     "watchface": true
   },
@@ -23,6 +23,11 @@
         "type": "bitmap",
         "name": "NUM_1",
         "file": "images/num/1.png"
+      },
+      {
+        "type": "bitmap",
+        "name": "NUM_1_ALT",
+        "file": "images/num/1_alt.png"
       },
       {
         "type": "bitmap",

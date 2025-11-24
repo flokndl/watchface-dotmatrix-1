@@ -1,6 +1,6 @@
 {
   "name": "pebble-watchface-dotmatrix-1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Pebble 2 Duo watchface",
   "main": "src/main.c",
   "author": "",
@@ -15,6 +15,10 @@
     ],
     "capabilities": [
       "configurable"
+    ],
+    "enableMultiJS": true,
+    "messageKeys": [
+      "UseTabularStyle1"
     ],
     "uuid": "c712ec82-d2a4-4b78-95a7-6b3fd9041055",
     "displayName": "Dotmatrix Watchface",
@@ -32,6 +36,11 @@
           "type": "bitmap",
           "name": "NUM_1",
           "file": "images/num/1.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "NUM_1_ALT",
+          "file": "images/num/1_alt.png"
         },
         {
           "type": "bitmap",
@@ -75,6 +84,8 @@
         }
       ]
     }
+  },
+  "dependencies": {
+    "pebble-clay": "^1.0.4"
   }
 }
-

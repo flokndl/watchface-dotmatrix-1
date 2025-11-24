@@ -39,6 +39,10 @@ def build(ctx):
     ctx.env = cached_env
 
     ctx.set_group('bundle')
-    ctx.pbl_bundle(binaries=binaries,
-                   js=ctx.path.ant_glob(['pebble-js-app.js']))
+    # Explicitly pass pkjs files to pbl_bundle when enableMultiJS is enabled
+    pkjs_files = ctx.path.ant_glob('src/pkjs/**/*.js')
+    if pkjs_files:
+        ctx.pbl_bundle(binaries=binaries, js=pkjs_files, js_entry_file='src/pkjs/index.js')
+    else:
+        ctx.pbl_bundle(binaries=binaries)
 

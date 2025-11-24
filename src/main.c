@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include <stdlib.h>
+#include "message_keys.auto.h"
 
 static Window *s_main_window;
 
@@ -13,10 +14,6 @@ static Animation *s_animations[4];        // Animation for each digit transition
 static PropertyAnimation *s_prop_animations[4];  // Property animations (need to be destroyed)
 static AppTimer *s_delay_timers[4];       // Delay timers for image_0 and image_2
 
-// Debug settings
-static bool show_debug_time = false;
-static char debug_time[] = "01:24";
-
 // Image dimensions
 #define IMAGE_WIDTH 56
 #define IMAGE_HEIGHT 72
@@ -27,8 +24,33 @@ static char debug_time[] = "01:24";
 #define PADDING_TOP 12
 #define PADDING_LEFT 16
 
+// Persistent storage key
+#define SETTINGS_KEY 1
+
+// Settings structure
+typedef struct {
+  bool use_tabular_style_1;
+} Settings;
+
+static Settings s_settings = {
+  .use_tabular_style_1 = true  // Default: checked
+};
+
+// Forward declarations
+static void load_settings(void);
+static void save_settings(void);
+static void inbox_received_handler(DictionaryIterator *iter, void *context);
+static void inbox_dropped_handler(AppMessageResult reason, void *context);
+static void outbox_failed_handler(DictionaryIterator *iter, AppMessageResult reason, void *context);
+static void outbox_sent_handler(DictionaryIterator *iter, void *context);
+static void update_time(void);
+
 // Helper function to get resource ID for a digit (0-9)
 static uint32_t get_num_resource_id(int digit) {
+  // Use alternate image for "1" if tabular style is disabled
+  if (digit == 1 && !s_settings.use_tabular_style_1) {
+    return RESOURCE_ID_NUM_1_ALT;
+  }
   return RESOURCE_ID_NUM_0 + digit;
 }
 
@@ -211,22 +233,14 @@ static void update_digit_with_transition(int digit_index, int new_digit, GRect p
 }
 
 // Update the displayed time
-static void update_time() {
-  int hours, minutes;
+static void update_time(void) {
+  time_t temp = time(NULL);
+  struct tm *tick_time = localtime(&temp);
+  int hours = tick_time->tm_hour;
+  int minutes = tick_time->tm_min;
   
-  if (show_debug_time) {
-    char hour_str[3] = {debug_time[0], debug_time[1], '\0'};
-    char min_str[3] = {debug_time[3], debug_time[4], '\0'};
-    hours = atoi(hour_str);
-    minutes = atoi(min_str);
-  } else {
-    time_t temp = time(NULL);
-    struct tm *tick_time = localtime(&temp);
-    hours = tick_time->tm_hour;
-    minutes = tick_time->tm_min;
-  }
-  
-  if (!show_debug_time && !clock_is_24h_style()) {
+  // Convert to 12-hour format if needed
+  if (!clock_is_24h_style()) {
     hours = hours % 12;
     if (hours == 0) hours = 12;
   }
@@ -344,6 +358,18 @@ static void main_window_unload(Window *window) {
 }
 
 static void init(void) {
+  // Load settings from persistent storage
+  load_settings();
+  
+  // Register AppMessage handlers
+  app_message_register_inbox_received(inbox_received_handler);
+  app_message_register_inbox_dropped(inbox_dropped_handler);
+  app_message_register_outbox_failed(outbox_failed_handler);
+  app_message_register_outbox_sent(outbox_sent_handler);
+  
+  // Open AppMessage with appropriate buffer sizes
+  app_message_open(128, 128);
+  
   s_main_window = window_create();
   
   window_set_window_handlers(s_main_window, (WindowHandlers) {
@@ -353,6 +379,56 @@ static void init(void) {
   
   window_stack_push(s_main_window, true);
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+}
+
+// Load settings from persistent storage
+static void load_settings(void) {
+  if (persist_exists(SETTINGS_KEY)) {
+    persist_read_data(SETTINGS_KEY, &s_settings, sizeof(s_settings));
+  }
+}
+
+// Save settings to persistent storage
+static void save_settings(void) {
+  persist_write_data(SETTINGS_KEY, &s_settings, sizeof(s_settings));
+}
+
+// AppMessage inbox received handler
+static void inbox_received_handler(DictionaryIterator *iter, void *context) {
+  Tuple *tabular_style_t = dict_find(iter, MESSAGE_KEY_UseTabularStyle1);
+  if (tabular_style_t) {
+    bool old_setting = s_settings.use_tabular_style_1;
+    s_settings.use_tabular_style_1 = tabular_style_t->value->int32 == 1;
+    save_settings();
+    
+    // If setting changed and we have "1" digits displayed, force them to reload
+    if (old_setting != s_settings.use_tabular_style_1) {
+      // Force reload of "1" digits by invalidating their current state
+      for (int i = 0; i < 4; i++) {
+        if (s_current_digits[i] == 1) {
+          s_current_digits[i] = -1;  // Force reload
+        }
+      }
+    }
+    
+    // Update display with new setting
+    update_time();
+  }
+}
+
+// AppMessage inbox dropped handler
+static void inbox_dropped_handler(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped! Reason: %d", reason);
+}
+
+// AppMessage outbox failed handler
+static void outbox_failed_handler(DictionaryIterator *iter, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed! Reason: %d", reason);
+}
+
+// AppMessage outbox sent handler
+static void outbox_sent_handler(DictionaryIterator *iter, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
 static void deinit(void) {
